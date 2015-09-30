@@ -1,181 +1,10 @@
 package com.company;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Apriori {
 
-    /* Configurations */
-    static final int SUPPORT = 40;
-    static final int CONFIDENCE = 70;
-    static final String FILE_PATH = "/home/castamere/code/datamining/hw2/association-rule-test-data.txt";
-
-    static final String[] TEMPLATE_TESTS = {
-            "BODY HAS 2 OF (G72_UP, G1_Down, G59_UP)",
-            "RULE HAS NONE OF (G72_UP)",
-            "SizeOf(BODY) ≥ 2"};
-
-    public static void main(String[] args) {
-
-        List<Map<String, Boolean>> data = readData(FILE_PATH);
-
-        Map<Set<String>, Integer> frequentItemset = runApriori(data, SUPPORT);
-        List<String> associationRules = generateAssociationRules(frequentItemset, CONFIDENCE);
-
-        System.out.println("------------------Apriori and AR mining ----------------------");
-        System.out.println("Frequent itemset ..:::.. Size = " + frequentItemset.size() + " ..:::.. " + frequentItemset);
-        System.out.println("Association rules ..:::.. Size = " + associationRules.size() + " ..:::.. " + associationRules);
-
-        /* Parse templates and find association rules that match the conditions */
-        System.out.println("----------------- Template tests -----------------------");
-        for (String template : TEMPLATE_TESTS) {
-            List<String> templateResult = parseTemplate(template, associationRules);
-            System.out.println(template + " ..:::.. Size = " + templateResult.size() + " ..:::.. " + templateResult);
-        }
-    }
-
-    private static List<String> parseTemplate(String text, List<String> associationRules) {
-        String regexTemplate1 = "(.*) (AND|OR) (.*)";
-        Pattern patternTemplate1 = Pattern.compile(regexTemplate1);
-        Matcher matcherTemplate1 = patternTemplate1.matcher(text);
-
-        if (matcherTemplate1.find()) {
-            List<String> rulesLeft = parseTemplate(matcherTemplate1.group(1), associationRules);
-            List<String> rulesRight = parseTemplate(matcherTemplate1.group(3), associationRules);
-            String andOr = matcherTemplate1.group(2);
-            if (andOr.equalsIgnoreCase("AND")) {
-                rulesLeft.retainAll(rulesRight);
-                return rulesLeft;
-            } else {
-                rulesLeft.addAll(rulesRight);
-                return rulesLeft;
-            }
-        } else {
-
-            String regexTemplate2 = "(RULE|BODY|HEAD) HAS (ANY|\\d+|NONE) OF \\((.*?)\\)";
-            Pattern patternTemplate2 = Pattern.compile(regexTemplate2);
-            Matcher matcherTemplate2 = patternTemplate2.matcher(text);
-
-            if (matcherTemplate2.find()) {
-                String ruleSubpartLabel = matcherTemplate2.group(1);
-                String howMany = matcherTemplate2.group(2);
-                String featureNamesString = matcherTemplate2.group(3);
-                String[] features = featureNamesString.split(",");
-                List<String> qualifyingRules = new ArrayList<>();
-
-                for (String rule : associationRules) {
-                    String ruleSubpart = getRuleSubpart(rule, ruleSubpartLabel);
-
-                    int count = 0;
-                    for (String feature : features)
-                        if (ruleSubpart.contains(feature.trim()))
-                            count++;
-
-                    if ((howMany.equals("ANY") && count > 0) || (howMany.equals("NONE") && count == 0) || (!howMany.equals("ANY") && !howMany.equals("NONE") && count == Integer.parseInt(howMany)))
-                        qualifyingRules.add(rule);
-                }
-                return qualifyingRules;
-
-            } else {
-                String regexTemplate3 = "SizeOf\\((RULE|BODY|HEAD)\\) (>|>=|≥|<|<=|=|==) (\\d+)";
-                Pattern patternTemplate3 = Pattern.compile(regexTemplate3);
-                Matcher matcherTemplate3 = patternTemplate3.matcher(text);
-                List<String> qualifyingRules = new ArrayList<>();
-
-                if (matcherTemplate3.find()) {
-                    String ruleSubpartLabel = matcherTemplate3.group(1);
-                    String operator = matcherTemplate3.group(2);
-                    int sizeCondition = Integer.parseInt(matcherTemplate3.group(3).trim());
-
-                    for (String rule : associationRules) {
-                        String ruleSubpart = getRuleSubpart(rule, ruleSubpartLabel);
-                        int size = countSizeOfRule(ruleSubpart);
-
-                        if (checkMathematicalCondition(size, operator, sizeCondition))
-                            qualifyingRules.add(rule);
-                    }
-                    return qualifyingRules;
-
-                } else {
-                    System.out.println("== No match ==");
-                }
-            }
-        }
-        return null;
-    }
-
-    private static boolean checkMathematicalCondition(int leftOperand, String operator, int rightOperand) {
-        /* >|>=|≥|<|<=|=|== */
-        if ((operator.equals(">") && leftOperand > rightOperand) ||
-                ((operator.equals(">=") || operator.equals("≥")) && leftOperand >= rightOperand) ||
-                (operator.equals("<") && leftOperand < rightOperand) ||
-                (operator.equals("<=") && leftOperand <= rightOperand) ||
-                ((operator.equals("=") || operator.equals("==")) && leftOperand == rightOperand))
-            return true;
-        else
-            return false;
-    }
-
-    private static int countSizeOfRule(String rule) {
-        return rule.split("(,|==>)").length;
-    }
-
-    private static String getRuleSubpart(String rule, String ruleSubpartLabel) {
-        if (ruleSubpartLabel.equals("RULE"))
-            return rule;
-        if (ruleSubpartLabel.equals("BODY"))
-            return rule.substring(0, rule.indexOf(" ==> "));
-        else if (ruleSubpartLabel.equals("HEAD"))
-            return rule.substring(rule.indexOf(" ==> ") + " ==> ".length());
-        else
-            return null;
-    }
-
-    private static List<String> generateAssociationRules(Map<Set<String>, Integer> frequentItemset, int minConfidence) {
-        List<String> associationRules = new ArrayList<>();
-
-        for (Set<String> L : frequentItemset.keySet()) {
-            for (Set<String> S : generatePowerSet(L)) {
-                if (S.size() > 0 && S.size() < L.size() && frequentItemset.containsKey(S) && frequentItemset.get(S) > 0) {
-                    double supportCountL = frequentItemset.get(L);
-                    double supportCountS = frequentItemset.get(S);
-                    double confidence = 100.0 * (supportCountL / supportCountS);
-                    if (confidence >= minConfidence) {
-                        Set<String> LminusS = new HashSet<>(L);
-                        LminusS.removeAll(S);
-                        associationRules.add(S + " ==> " + LminusS);
-                    }
-                }
-            }
-        }
-
-        return associationRules;
-    }
-
-    private static <String> Set<Set<String>> generatePowerSet(Set<String> theGivenSet) {
-        Set<Set<String>> thePowerset = new HashSet<>();
-        if (theGivenSet.isEmpty()) {
-            thePowerset.add(new HashSet<String>());
-            return thePowerset;
-        }
-        List<String> list = new ArrayList<>(theGivenSet);
-        String head = list.get(0);
-        Set<String> rest = new HashSet<>(list.subList(1, list.size()));
-        for (Set<String> thisSet : generatePowerSet(rest)) {
-            Set<String> newSet = new HashSet<>();
-            newSet.add(head);
-            newSet.addAll(thisSet);
-            thePowerset.add(newSet);
-            thePowerset.add(thisSet);
-        }
-        return thePowerset;
-    }
-
-    private static Map<Set<String>, Integer> runApriori(List<Map<String, Boolean>> data, int minSupport) {
+    public static Map<Set<String>, Integer> runApriori(List<Map<String, Boolean>> data, int minSupport) {
 
         /* Start timer */
         long start = System.currentTimeMillis();
@@ -311,7 +140,7 @@ public class Apriori {
 
         for (Set<String> setInNewL : newL.keySet()) {
             boolean somethingIsMissing = false;
-            List<Set<String>> subsets = getSubsetsOfSizeMinusOne(setInNewL);
+            List<Set<String>> subsets = Helper.getSubsetsOfSizeMinusOne(setInNewL);
             for (Set<String> subset : subsets)
                 if (!oldL.containsKey(subset))
                     somethingIsMissing = true;
@@ -320,27 +149,6 @@ public class Apriori {
                 prunedL.put(setInNewL, newL.get(setInNewL));
         }
         return prunedL;
-    }
-
-    private static List<Set<String>> getSubsetsOfSizeMinusOne(Set<String> theSet) {
-        List<Set<String>> subsets = new ArrayList<>();
-        List<String> theList = new ArrayList<>();
-        theList.addAll(theSet);
-        int n = theList.size();
-
-        for (int j = 1; j < n; j++) {
-            Set<String> newSet = new HashSet<>();
-            newSet.add(theList.get(0));
-            for (int x = 1; x < n; x++)
-                if (x != j)
-                    newSet.add(theList.get(x));
-            subsets.add(newSet);
-        }
-
-        Set<String> newSet = new HashSet<>();
-        newSet.addAll(theList.subList(1, theList.size()));
-        subsets.add(newSet);
-        return subsets;
     }
 
     private static Map<Set<String>, Integer> generateC1(List<Map<String, Boolean>> data) {
@@ -355,45 +163,5 @@ public class Apriori {
         }
 
         return C;
-    }
-
-    private static List<Map<String, Boolean>> readData(String filePath) {
-        List<Map<String, Boolean>> list = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line = br.readLine();
-
-            while (line != null) {
-                Map<String, Boolean> map = new HashMap<>();
-                String tokens[] = line.split("\\t");
-
-                /* Add gene values */
-                for (int i = 1; i < tokens.length - 1; i++) {
-                    String geneValue = tokens[i];
-                    String geneUp = "G" + i + "_UP";
-                    String geneDown = "G" + i + "_Down";
-                    boolean isGeneUp = false, isGeneDown = false;
-                    if (geneValue.equalsIgnoreCase("up"))
-                        isGeneUp = true;
-                    else
-                        isGeneDown = true;
-                    map.put(geneUp, isGeneUp);
-                    map.put(geneDown, isGeneDown);
-                }
-
-                /* Add disease value */
-                map.put("ALL", false);
-                map.put("AML", false);
-                map.put("Breast Cancer", false);
-                map.put("Colon Cancer", false);
-                map.put(tokens[tokens.length - 1], true);
-
-                list.add(map);
-                line = br.readLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return list;
     }
 }

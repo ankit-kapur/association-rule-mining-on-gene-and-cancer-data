@@ -119,6 +119,31 @@ public class Apriori {
         return newCandidateSet;
     }
 
+    private static List<Set<String>> selfJoin(List<Set<String>> mainset) {
+        List<Set<String>> result = new ArrayList<>();
+
+        for (int i = 0; i < mainset.size(); i++) {
+            Set<String> set1 = mainset.get(i);
+            for (int j = i + 1; j < mainset.size(); j++) {
+
+                Set<String> set2 = mainset.get(j);
+
+                int count = 0;
+                for (String s: set1)
+                    if (set2.contains(s))
+                        count++;
+
+                if (count == set1.size()-1) {
+                    Set<String> newSet = new HashSet<>();
+                    newSet.addAll(set1);
+                    newSet.addAll(set2);
+                    result.add(newSet);
+                }
+            }
+        }
+        return result;
+    }
+
     private static List<Set<String>> prune(List<Set<String>> newL, List<Set<String>> oldL) {
         List<Set<String>> prunedL = new ArrayList<>();
         for (Set<String> setInNewL : newL) {
@@ -134,39 +159,25 @@ public class Apriori {
         return prunedL;
     }
 
-    private static List<Set<String>> getSubsetsOfSizeMinusOne(Set<String> set) {
+    private static List<Set<String>> getSubsetsOfSizeMinusOne(Set<String> theSet) {
         List<Set<String>> subsets = new ArrayList<>();
+        List<String> theList = new ArrayList<>();
+        theList.addAll(theSet);
+        int n = theList.size();
 
-        for (String value1 : set) {
+        for (int j = 1; j < n; j++) {
             Set<String> newSet = new HashSet<>();
-            for (String value2 : set)
-                if (!value1.equals(value2))
-                    newSet.add(value2);
+            newSet.add(theList.get(0));
+            for (int x = 1; x < n; x++)
+                if (x != j)
+                    newSet.add(theList.get(x));
             subsets.add(newSet);
         }
+
+        Set<String> newSet = new HashSet<>();
+        newSet.addAll(theList.subList(1, theList.size()));
+        subsets.add(newSet);
         return subsets;
-    }
-
-    private static List<Set<String>> selfJoin(List<Set<String>> mainset) {
-        List<Set<String>> result = new ArrayList<>();
-
-        for (int i = 0; i < mainset.size(); i++) {
-            Set<String> set1 = mainset.get(i);
-            for (int j = i + 1; j < mainset.size(); j++) {
-                Set<String> set2 = mainset.get(j);
-                Set<String> newSet = new HashSet<>();
-                newSet.addAll(set1);
-                newSet.addAll(set2);
-
-                boolean isUnique = true;
-                for (Set<String> existingSet : result)
-                    if (existingSet.containsAll(newSet))
-                        isUnique = false;
-                if (isUnique)
-                    result.add(newSet);
-            }
-        }
-        return result;
     }
 
     private static Map<Set<String>, Integer> generateC1(List<Map<String, Boolean>> data) {

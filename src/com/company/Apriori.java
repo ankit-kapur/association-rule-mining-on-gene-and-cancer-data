@@ -12,35 +12,35 @@ public class Apriori {
         String filePath = "/home/castamere/code/datamining/hw2/association-rule-test-data.txt";
         List<Map<String, Boolean>> data = readData(filePath);
 
-        List<Set<String>> frequentItemset = runApriori(data, 50);
+        Map<Set<String>, Integer> frequentItemset = runApriori(data, 50);
         System.out.println("Frequent itemset ===> Size = " + frequentItemset.size() + " ==> " + frequentItemset);
 
         List<Map<String, String>> associationRules = generateAssociationRules(frequentItemset);
         System.out.println("\nAssociationRules ===> Size = " + associationRules.size() + " ==> " + associationRules);
     }
 
-    private static List<Map<String, String>> generateAssociationRules(List<Set<String>> frequentItemset) {
+    private static List<Map<String, String>> generateAssociationRules(Map<Set<String>, Integer> frequentItemset) {
         return null;
     }
 
-    private static List<Set<String>> runApriori(List<Map<String, Boolean>> data, int minSupport) {
+    private static Map<Set<String>, Integer> runApriori(List<Map<String, Boolean>> data, int minSupport) {
 
         /* Start timer */
         long start = System.currentTimeMillis();
 
         /* C = Candidate set
            L = Frequent itemset */
-        List<Set<String>> resultSet = new ArrayList<>();
+        Map<Set<String>, Integer> resultSet = new HashMap<>();
 
         /* Make L1 (Frequent itemset with set-size = 1) */
-        List<Set<String>> L = generateL1(data, minSupport);
-        resultSet.addAll(L);
+        Map<Set<String>, Integer> L = generateL1(data, minSupport);
+        resultSet.putAll(L);
         System.out.println("\nItemset of size = 1 generated.\nL.size() ==> [" + L.size() + "] ===> L = " + L);
 
         for (int k = 1; !L.isEmpty(); k++) {
             /* k is the size of the itemset being considered currently */
 
-            System.out.println("\nIteration for itemset size = " + (k+1) + " begins.");
+            System.out.println("\nIteration for itemset size = " + (k + 1) + " begins.");
             long iterationStart = System.currentTimeMillis();
 
             /* Generate candidate sets of size k */
@@ -58,8 +58,8 @@ public class Apriori {
             L = generateLFromC(C, minSupport);
             long t4 = System.currentTimeMillis();
             System.out.println(">> generateLFromC time is: " + ((double) (t4 - t3) / 1000) + " seconds.");
-            resultSet.addAll(L);
-            System.out.println("Iteration for itemset size = " + (k+1) + " complete. L.size() ==> [" + L.size() + "] ===> L = " + L);
+            resultSet.putAll(L);
+            System.out.println("Iteration for itemset size = " + (k + 1) + " complete. L.size() ==> [" + L.size() + "] ===> L = " + L);
 
             long end = System.currentTimeMillis();
             System.out.println(">>>> Iteration time is: " + ((double) (end - iterationStart) / 1000) + " seconds.");
@@ -83,7 +83,7 @@ public class Apriori {
             }
     }
 
-    private static List<Set<String>> generateL1(List<Map<String, Boolean>> data, int minSupport) {
+    private static Map<Set<String>, Integer> generateL1(List<Map<String, Boolean>> data, int minSupport) {
 
         /* Generate candidate set C, with itemsets of size=1 for each possible attribute value */
         Map<Set<String>, Integer> C = generateC1(data);
@@ -94,41 +94,40 @@ public class Apriori {
         return generateLFromC(C, minSupport);
     }
 
-    private static List<Set<String>> generateLFromC(Map<Set<String>, Integer> C, int minSupport) {
-        List<Set<String>> L = new ArrayList<>();
+    private static Map<Set<String>, Integer> generateLFromC(Map<Set<String>, Integer> C, int minSupport) {
+        Map<Set<String>, Integer> L = new HashMap<>();
 
         for (Set<String> key : C.keySet()) {
             int support = C.get(key);
             if (support >= minSupport)
-                L.add(key);
+                L.put(key, support);
         }
 
         return L;
     }
 
-    private static Map<Set<String>, Integer> generateCandidates(List<Set<String>> L) {
+    private static Map<Set<String>, Integer> generateCandidates(Map<Set<String>, Integer> L) {
         /* Do a self-join */
         long t1 = System.currentTimeMillis();
-        Map<Set<String>, Integer> newCandidateSet = new HashMap<>();
-        List<Set<String>> selfJoinResult = selfJoin(L);
+        Map<Set<String>, Integer> selfJoinResult = selfJoin(L);
         long t2 = System.currentTimeMillis();
         System.out.println(">> selfJoin time is: " + ((double) (t2 - t1) / 1000) + " seconds.");
 
         /* Filter out (prune) those results which are not present in L */
-        List<Set<String>> prunedL = prune(selfJoinResult, L);
+        Map<Set<String>, Integer> prunedResult = prune(selfJoinResult, L);
 
         long t3 = System.currentTimeMillis();
         System.out.println(">> prune time is: " + ((double) (t3 - t2) / 1000) + " seconds.");
 
-        /* Zero support for each candidate initially */
-        for (Set<String> set : prunedL)
-            newCandidateSet.put(set, 0);
-
-        return newCandidateSet;
+        return prunedResult;
     }
 
-    private static List<Set<String>> selfJoin(List<Set<String>> mainset) {
-        List<Set<String>> result = new ArrayList<>();
+    private static Map<Set<String>, Integer> selfJoin(Map<Set<String>, Integer> L) {
+        /* Need to first make a list that has all the sets (which are the keys in L) */
+        List<Set<String>> mainset = new ArrayList<>();
+        mainset.addAll(L.keySet());
+
+        Map<Set<String>, Integer> result = new HashMap<>();
 
         for (int i = 0; i < mainset.size(); i++) {
             Set<String> set1 = mainset.get(i);
@@ -137,32 +136,36 @@ public class Apriori {
                 Set<String> set2 = mainset.get(j);
 
                 int count = 0;
-                for (String s: set1)
+                for (String s : set1)
                     if (set2.contains(s))
                         count++;
 
-                if (count == set1.size()-1) {
+                if (count == set1.size() - 1) {
                     Set<String> newSet = new HashSet<>();
                     newSet.addAll(set1);
                     newSet.addAll(set2);
-                    result.add(newSet);
+
+                    /* Zero support for each candidate initially */
+                    result.put(newSet, 0);
                 }
             }
         }
         return result;
     }
 
-    private static List<Set<String>> prune(List<Set<String>> newL, List<Set<String>> oldL) {
-        List<Set<String>> prunedL = new ArrayList<>();
-        for (Set<String> setInNewL : newL) {
+    private static Map<Set<String>, Integer> prune(Map<Set<String>, Integer> newL, Map<Set<String>, Integer> oldL) {
+
+        Map<Set<String>, Integer> prunedL = new HashMap<>();
+
+        for (Set<String> setInNewL : newL.keySet()) {
             boolean somethingIsMissing = false;
             List<Set<String>> subsets = getSubsetsOfSizeMinusOne(setInNewL);
             for (Set<String> subset : subsets)
-                if (!oldL.contains(subset))
+                if (!oldL.containsKey(subset))
                     somethingIsMissing = true;
 
             if (!somethingIsMissing)
-                prunedL.add(setInNewL);
+                prunedL.put(setInNewL, newL.get(setInNewL));
         }
         return prunedL;
     }

@@ -10,10 +10,17 @@ public class Apriori {
     public static void main(String[] args) {
 
         String filePath = "/home/castamere/code/datamining/hw2/association-rule-test-data.txt";
-        List<Map<String, Boolean>> data = getData(filePath);
+        List<Map<String, Boolean>> data = readData(filePath);
 
-        List<Set<String>> frequentItemset = runApriori(data, 30);
-        System.out.println("\n\nFrequent itemset ===> " + frequentItemset);
+        List<Set<String>> frequentItemset = runApriori(data, 50);
+        System.out.println("Frequent itemset ===> Size = " + frequentItemset.size() + " ==> " + frequentItemset);
+
+        List<Map<String, String>> associationRules = generateAssociationRules(frequentItemset);
+        System.out.println("\nAssociationRules ===> Size = " + associationRules.size() + " ==> " + associationRules);
+    }
+
+    private static List<Map<String, String>> generateAssociationRules(List<Set<String>> frequentItemset) {
+        return null;
     }
 
     private static List<Set<String>> runApriori(List<Map<String, Boolean>> data, int minSupport) {
@@ -27,12 +34,13 @@ public class Apriori {
 
         /* Make L1 (Frequent itemset with set-size = 1) */
         List<Set<String>> L = generateL1(data, minSupport);
-        System.out.println("L1 ==> " + L);
+        resultSet.addAll(L);
+        System.out.println("\nItemset of size = 1 generated.\nL.size() ==> [" + L.size() + "] ===> L = " + L);
 
         for (int k = 1; !L.isEmpty(); k++) {
             /* k is the size of the itemset being considered currently */
 
-            System.out.println("\nIteration " + k + " begins.");
+            System.out.println("\nIteration for itemset size = " + (k+1) + " begins.");
             long iterationStart = System.currentTimeMillis();
 
             /* Generate candidate sets of size k */
@@ -51,7 +59,7 @@ public class Apriori {
             long t4 = System.currentTimeMillis();
             System.out.println(">> generateLFromC time is: " + ((double) (t4 - t3) / 1000) + " seconds.");
             resultSet.addAll(L);
-            System.out.println("Iteration " + k + " complete. L size ==> [" + L.size() + "] ... " + L);
+            System.out.println("Iteration for itemset size = " + (k+1) + " complete. L.size() ==> [" + L.size() + "] ===> L = " + L);
 
             long end = System.currentTimeMillis();
             System.out.println(">>>> Iteration time is: " + ((double) (end - iterationStart) / 1000) + " seconds.");
@@ -59,7 +67,7 @@ public class Apriori {
 
         long end = System.currentTimeMillis();
         System.out.println("\n\nTotal execution time is: " + ((double) (end - start) / 1000) + " seconds.");
-        return L;
+        return resultSet;
     }
 
     private static void findCandidateSetsSupport(Map<Set<String>, Integer> C, List<Map<String, Boolean>> data) {
@@ -194,7 +202,7 @@ public class Apriori {
         return C;
     }
 
-    private static List<Map<String, Boolean>> getData(String filePath) {
+    private static List<Map<String, Boolean>> readData(String filePath) {
         List<Map<String, Boolean>> list = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line = br.readLine();

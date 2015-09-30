@@ -30,8 +30,8 @@
       <file leaf-file-name="Apriori.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/com/company/Apriori.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.4018127">
-              <caret line="165" column="31" selection-start-line="165" selection-start-column="31" selection-end-line="165" selection-end-column="31" />
+            <state vertical-scroll-proportion="0.5724382">
+              <caret line="18" column="115" selection-start-line="18" selection-start-column="115" selection-end-line="18" selection-end-column="115" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -458,7 +458,7 @@
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25" sideWeight="0.49415693" order="3" side_tool="false" content_ui="combo" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="5" side_tool="false" content_ui="combo" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.39232054" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.42404008" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -483,25 +483,19 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/com/company/Apriori.java</url>
-          <line>104</line>
+          <line>112</line>
           <properties />
           <option name="timeStamp" value="6" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/com/company/Apriori.java</url>
-          <line>158</line>
-          <properties />
-          <option name="timeStamp" value="10" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/com/company/Apriori.java</url>
-          <line>118</line>
+          <line>126</line>
           <properties />
           <option name="timeStamp" value="11" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/com/company/Apriori.java</url>
-          <line>97</line>
+          <line>105</line>
           <properties />
           <option name="timeStamp" value="13" />
         </line-breakpoint>
@@ -561,8 +555,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/company/Apriori.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4018127">
-          <caret line="165" column="31" selection-start-line="165" selection-start-column="31" selection-end-line="165" selection-end-column="31" />
+        <state vertical-scroll-proportion="0.5724382">
+          <caret line="18" column="115" selection-start-line="18" selection-start-column="115" selection-end-line="18" selection-end-column="115" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>

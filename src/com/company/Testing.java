@@ -1,80 +1,73 @@
 package com.company;
 
-import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Testing {
     public static void main(String[] args) {
 
-        Set<String> set1 = new HashSet<>();
-        set1.add("a");
-        set1.add("b");
-        set1.add("c");
-        set1.add("d");
-        set1.add("e");
-        set1.add("f");
+        System.out.println("\n" + checkMathematicalCondition(4, ">=", 5));
 
-        Set<String> set2 = new HashSet<>();
-        set2.add("b");
-        set2.add("c");
-        set2.add("d");
-
-        Set<String> set3 = new HashSet<>();
-        set3.add("a");
-        set3.add("b");
-        set3.add("d");
-
-        List<Set<String>> mainset = new ArrayList<>();
-        mainset.add(set1);
-        mainset.add(set2);
-        mainset.add(set3);
-
-//        System.out.println(mainset);
-//        List<Set<String>> result = selfJoin(mainset);
-//
-        List<Set<String>> result = getSubsetsOfSizeMinusOne(set1);
-        System.out.println(result);
+    }
+    private static boolean checkMathematicalCondition(int leftOperand, String operator, int rightOperand) {
+        /* >|>=|≥|<|<=|=|== */
+        if ((operator.equals(">") && leftOperand > rightOperand) ||
+                ((operator.equals(">=") || operator.equals("≥")) && leftOperand >= rightOperand) ||
+                (operator.equals("<") && leftOperand < rightOperand) ||
+                (operator.equals("<=") && leftOperand <= rightOperand) ||
+                ((operator.equals("=") || operator.equals("==")) && leftOperand == rightOperand))
+            return true;
+        else
+            return false;
     }
 
-    private static List<Set<String>> getSubsetsOfSizeMinusOne(Set<String> theSet) {
-        List<Set<String>> subsets = new ArrayList<>();
-        List<String> theList = new ArrayList<>();
-        theList.addAll(theSet);
-        int n = theList.size();
-
-        for (int j = 1; j < n; j++) {
-            Set<String> newSet = new HashSet<>();
-            newSet.add(theList.get(0));
-            for (int x = 1; x < n; x++)
-                if (x != j)
-                    newSet.add(theList.get(x));
-            subsets.add(newSet);
-        }
-
-        Set<String> newSet = new HashSet<>();
-        newSet.addAll(theList.subList(1, theList.size()));
-        subsets.add(newSet);
-        return subsets;
+    private static String getRuleSubpart(String rule, String ruleSubpartLabel) {
+        if (ruleSubpartLabel.equals("RULE"))
+            return rule;
+        if (ruleSubpartLabel.equals("BODY"))
+            return rule.substring(0, rule.indexOf(" ==> "));
+        else if (ruleSubpartLabel.equals("HEAD"))
+            return rule.substring(rule.indexOf(" ==> ") + " ==> ".length());
+        else
+            return null;
     }
 
-    private static List<Set<String>> selfJoin(List<Set<String>> mainset) {
-        List<Set<String>> result = new ArrayList<>();
+    private static void stuff() {
 
-        for (int i = 0; i < mainset.size(); i++) {
-            Set<String> set1 = mainset.get(i);
-            for (int j = i + 1; j < mainset.size(); j++) {
-                Set<String> set2 = mainset.get(j);
-                Set<String> newSet = new HashSet<>();
-                newSet.addAll(set1);
-                newSet.addAll(set2);
 
-                boolean isUnique = true;
-                for (Set<String> existingSet : result)
-                    if (existingSet.containsAll(newSet))
-                        isUnique = false;
-                if (isUnique)
-                    result.add(newSet);
+        String text = "RULE HAS 33 OF (Gene72_UP, Gene1_Down, Gene59_UP) AND something (else)";
+
+        String regexTemplate1 = "(.*) (AND|OR) (.*)";
+        Pattern patternTemplate1 = Pattern.compile(regexTemplate1);
+        Matcher matcherTemplate1 = patternTemplate1.matcher(text);
+
+        if (matcherTemplate1.find()) {
+            System.out.println("found: " + matcherTemplate1.group(1));
+            System.out.println("found: " + matcherTemplate1.group(2));
+            System.out.println("found: " + matcherTemplate1.group(3));
+        } else {
+
+            String regexTemplate2 = "(RULE|BODY|HEAD) HAS (ANY|\\d+|NONE) OF \\((.*?)\\)";
+            Pattern patternTemplate2 = Pattern.compile(regexTemplate2);
+            Matcher matcherTemplate2 = patternTemplate2.matcher(text);
+
+            if (matcherTemplate2.find()) {
+                System.out.println("found: " + matcherTemplate2.group(1));
+                System.out.println("found: " + matcherTemplate2.group(2));
+                System.out.println("found: " + matcherTemplate2.group(3));
+            } else {
+                String regexTemplate3 = "SizeOf\\((RULE|BODY|HEAD)\\) (>|>=|≥|<|<=|=|==) (\\d+)";
+                Pattern patternTemplate3 = Pattern.compile(regexTemplate3);
+                Matcher matcherTemplate3 = patternTemplate3.matcher(text);
+
+                if (matcherTemplate3.find()) {
+                    System.out.println("found: " + matcherTemplate3.group(1));
+                    System.out.println("found: " + matcherTemplate3.group(2));
+                    System.out.println("found: " + matcherTemplate3.group(3));
+                } else {
+                    System.out.println("No match");
+                }
             }
         }
-        return result;
     }
 }

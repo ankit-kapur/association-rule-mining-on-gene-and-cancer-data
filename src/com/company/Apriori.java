@@ -4,25 +4,135 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Apriori {
 
+    /* Configurations */
     static final int SUPPORT = 40;
     static final int CONFIDENCE = 70;
+    static final String FILE_PATH = "/home/castamere/code/datamining/hw2/association-rule-test-data.txt";
+
+    static final String[] TEMPLATE_TESTS = {
+            "BODY HAS 2 OF (G72_UP, G1_Down, G59_UP)",
+            "RULE HAS NONE OF (G72_UP)",
+            "SizeOf(BODY) ≥ 2"};
 
     public static void main(String[] args) {
 
-        String filePath = "/home/castamere/code/datamining/hw2/association-rule-test-data.txt";
-        List<Map<String, Boolean>> data = readData(filePath);
+        List<Map<String, Boolean>> data = readData(FILE_PATH);
 
         Map<Set<String>, Integer> frequentItemset = runApriori(data, SUPPORT);
-        System.out.println("----------------------------------------");
-        System.out.println("Frequent itemset ===> Size = " + frequentItemset.size() + " ==> " + frequentItemset);
-
         List<String> associationRules = generateAssociationRules(frequentItemset, CONFIDENCE);
-        System.out.println("Association rules ===> Size = " + associationRules.size() + " ==> " + associationRules);
 
-        
+        System.out.println("------------------Apriori and AR mining ----------------------");
+        System.out.println("Frequent itemset ..:::.. Size = " + frequentItemset.size() + " ..:::.. " + frequentItemset);
+        System.out.println("Association rules ..:::.. Size = " + associationRules.size() + " ..:::.. " + associationRules);
+
+        /* Parse templates and find association rules that match the conditions */
+        System.out.println("----------------- Template tests -----------------------");
+        for (String template : TEMPLATE_TESTS) {
+            List<String> templateResult = parseTemplate(template, associationRules);
+            System.out.println(template + " ..:::.. Size = " + templateResult.size() + " ..:::.. " + templateResult);
+        }
+    }
+
+    private static List<String> parseTemplate(String text, List<String> associationRules) {
+        String regexTemplate1 = "(.*) (AND|OR) (.*)";
+        Pattern patternTemplate1 = Pattern.compile(regexTemplate1);
+        Matcher matcherTemplate1 = patternTemplate1.matcher(text);
+
+        if (matcherTemplate1.find()) {
+            List<String> rulesLeft = parseTemplate(matcherTemplate1.group(1), associationRules);
+            List<String> rulesRight = parseTemplate(matcherTemplate1.group(3), associationRules);
+            String andOr = matcherTemplate1.group(2);
+            if (andOr.equalsIgnoreCase("AND")) {
+                rulesLeft.retainAll(rulesRight);
+                return rulesLeft;
+            } else {
+                rulesLeft.addAll(rulesRight);
+                return rulesLeft;
+            }
+        } else {
+
+            String regexTemplate2 = "(RULE|BODY|HEAD) HAS (ANY|\\d+|NONE) OF \\((.*?)\\)";
+            Pattern patternTemplate2 = Pattern.compile(regexTemplate2);
+            Matcher matcherTemplate2 = patternTemplate2.matcher(text);
+
+            if (matcherTemplate2.find()) {
+                String ruleSubpartLabel = matcherTemplate2.group(1);
+                String howMany = matcherTemplate2.group(2);
+                String featureNamesString = matcherTemplate2.group(3);
+                String[] features = featureNamesString.split(",");
+                List<String> qualifyingRules = new ArrayList<>();
+
+                for (String rule : associationRules) {
+                    String ruleSubpart = getRuleSubpart(rule, ruleSubpartLabel);
+
+                    int count = 0;
+                    for (String feature : features)
+                        if (ruleSubpart.contains(feature.trim()))
+                            count++;
+
+                    if ((howMany.equals("ANY") && count > 0) || (howMany.equals("NONE") && count == 0) || (!howMany.equals("ANY") && !howMany.equals("NONE") && count == Integer.parseInt(howMany)))
+                        qualifyingRules.add(rule);
+                }
+                return qualifyingRules;
+
+            } else {
+                String regexTemplate3 = "SizeOf\\((RULE|BODY|HEAD)\\) (>|>=|≥|<|<=|=|==) (\\d+)";
+                Pattern patternTemplate3 = Pattern.compile(regexTemplate3);
+                Matcher matcherTemplate3 = patternTemplate3.matcher(text);
+                List<String> qualifyingRules = new ArrayList<>();
+
+                if (matcherTemplate3.find()) {
+                    String ruleSubpartLabel = matcherTemplate3.group(1);
+                    String operator = matcherTemplate3.group(2);
+                    int sizeCondition = Integer.parseInt(matcherTemplate3.group(3).trim());
+
+                    for (String rule : associationRules) {
+                        String ruleSubpart = getRuleSubpart(rule, ruleSubpartLabel);
+                        int size = countSizeOfRule(ruleSubpart);
+
+                        if (checkMathematicalCondition(size, operator, sizeCondition))
+                            qualifyingRules.add(rule);
+                    }
+                    return qualifyingRules;
+
+                } else {
+                    System.out.println("== No match ==");
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean checkMathematicalCondition(int leftOperand, String operator, int rightOperand) {
+        /* >|>=|≥|<|<=|=|== */
+        if ((operator.equals(">") && leftOperand > rightOperand) ||
+                ((operator.equals(">=") || operator.equals("≥")) && leftOperand >= rightOperand) ||
+                (operator.equals("<") && leftOperand < rightOperand) ||
+                (operator.equals("<=") && leftOperand <= rightOperand) ||
+                ((operator.equals("=") || operator.equals("==")) && leftOperand == rightOperand))
+            return true;
+        else
+            return false;
+    }
+
+    private static int countSizeOfRule(String rule) {
+        return rule.split("(,|==>)").length;
+    }
+
+    private static String getRuleSubpart(String rule, String ruleSubpartLabel) {
+        if (ruleSubpartLabel.equals("RULE"))
+            return rule;
+        if (ruleSubpartLabel.equals("BODY"))
+            return rule.substring(0, rule.indexOf(" ==> "));
+        else if (ruleSubpartLabel.equals("HEAD"))
+            return rule.substring(rule.indexOf(" ==> ") + " ==> ".length());
+        else
+            return null;
     }
 
     private static List<String> generateAssociationRules(Map<Set<String>, Integer> frequentItemset, int minConfidence) {
@@ -48,6 +158,10 @@ public class Apriori {
 
     private static <String> Set<Set<String>> generatePowerSet(Set<String> theGivenSet) {
         Set<Set<String>> thePowerset = new HashSet<>();
+        if (theGivenSet.isEmpty()) {
+            thePowerset.add(new HashSet<String>());
+            return thePowerset;
+        }
         List<String> list = new ArrayList<>(theGivenSet);
         String head = list.get(0);
         Set<String> rest = new HashSet<>(list.subList(1, list.size()));
@@ -255,8 +369,8 @@ public class Apriori {
                 /* Add gene values */
                 for (int i = 1; i < tokens.length - 1; i++) {
                     String geneValue = tokens[i];
-                    String geneUp = "gene" + i + "_up";
-                    String geneDown = "gene" + i + "_down";
+                    String geneUp = "G" + i + "_UP";
+                    String geneDown = "G" + i + "_Down";
                     boolean isGeneUp = false, isGeneDown = false;
                     if (geneValue.equalsIgnoreCase("up"))
                         isGeneUp = true;

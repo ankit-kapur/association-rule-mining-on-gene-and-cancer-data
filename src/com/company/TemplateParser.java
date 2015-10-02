@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 public class TemplateParser {
 
     public static List<String> parseTemplate(String text, List<String> associationRules) {
+        text = text.replaceAll("Gene", "G").replaceAll("\\[", "(").replaceAll("]", ")").replaceAll("'", "");
         String regexTemplate1 = "(.*) (AND|OR) (.*)";
         Pattern patternTemplate1 = Pattern.compile(regexTemplate1);
         Matcher matcherTemplate1 = patternTemplate1.matcher(text);

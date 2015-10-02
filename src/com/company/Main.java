@@ -6,32 +6,28 @@ import java.io.IOException;
 import java.util.*;
 
 public class Main {
-    /* Configurations */
-    static final int SUPPORT = 40;
-    static final int CONFIDENCE = 70;
-    static final String FILE_PATH = "/home/castamere/code/datamining/hw2/association-rule-test-data.txt";
 
-    static final String[] TEMPLATE_TESTS = {
-            "BODY HAS 2 OF (G72_UP, G1_Down, G59_UP)",
-            "RULE HAS NONE OF (G72_UP)",
-            "SizeOf(BODY) ≥ 2"};
+    /* ------------------------------ Note ---------------------------------
+            To configure support, confidence, filepath, and template queries,
+            please open the Configurations class, and change these parameters
+       --------------------------------------------------------------------- */
 
     public static void main(String[] args) {
 
-        List<Map<String, Boolean>> data = readData(FILE_PATH);
+        List<Map<String, Boolean>> data = readData(Configurations.FILE_PATH);
 
-        Map<Set<String>, Integer> frequentItemset = Apriori.runApriori(data, SUPPORT);
-        List<String> associationRules = AssociationRuleMining.generateAssociationRules(frequentItemset, CONFIDENCE);
+        Map<Set<String>, Integer> frequentItemset = Apriori.runApriori(data, Configurations.SUPPORT);
+        List<String> associationRules = AssociationRuleMining.generateAssociationRules(frequentItemset, Configurations.CONFIDENCE);
 
-        System.out.println("------------------Apriori and AR mining ----------------------");
-        System.out.println("Frequent itemset ..:::.. Size = " + frequentItemset.size() + " ..:::.. " + frequentItemset);
-        System.out.println("Association rules ..:::.. Size = " + associationRules.size() + " ..:::.. " + associationRules);
+        System.out.println("\n------------------Apriori and AR mining ----------------------");
+        System.out.println("Frequent itemset >>>> Size = " + frequentItemset.size() + " >>>> " + frequentItemset);
+        System.out.println("Association rules >>>> Size = " + associationRules.size() + " >>>> " + associationRules);
 
         /* Parse templates and find association rules that match the conditions */
-        System.out.println("\n------------------- Template tests -----------------------");
-        for (String template : TEMPLATE_TESTS) {
+        System.out.println("\n------------------- Template query tests -----------------------");
+        for (String template : Configurations.TEMPLATE_TEST_QUERIES) {
             List<String> templateResult = TemplateParser.parseTemplate(template, associationRules);
-            System.out.println(template + " ..:::.. Size = " + templateResult.size() + " ..:::.. " + templateResult);
+            System.out.println(template + " >>>> Size = " + templateResult.size() + " >>>> " + templateResult);
         }
     }
 

@@ -8,13 +8,14 @@ public class Apriori {
 
         /* Start timer */
         long start = System.currentTimeMillis();
+        int numOfSamples = data.size();
 
         /* C = Candidate set
            L = Frequent itemset */
         Map<Set<String>, Integer> resultSet = new HashMap<>();
 
         /* Make L1 (Frequent itemset with set-size = 1) */
-        Map<Set<String>, Integer> L = generateL1(data, minSupport);
+        Map<Set<String>, Integer> L = generateL1(data, minSupport, numOfSamples);
         resultSet.putAll(L);
         System.out.println("\nItemset of size = 1 generated.\nL.size() ==> [" + L.size() + "] ===> L = " + L);
 
@@ -31,12 +32,12 @@ public class Apriori {
             System.out.println(">> generateCandidates time is: " + ((double) (t2 - t1) / 1000) + " seconds.");
 
             /* Go through dataset and find support values */
-            findCandidateSetsSupport(C, data);
+            findSupportCount(C, data);
             long t3 = System.currentTimeMillis();
-            System.out.println(">> findCandidateSetsSupport time is: " + ((double) (t3 - t2) / 1000) + " seconds.");
+            System.out.println(">> findSupportCount time is: " + ((double) (t3 - t2) / 1000) + " seconds.");
 
             /* Get the frequent itemset (for set-size k) */
-            L = generateLFromC(C, minSupport);
+            L = generateLFromC(C, minSupport, numOfSamples);
             long t4 = System.currentTimeMillis();
             System.out.println(">> generateLFromC time is: " + ((double) (t4 - t3) / 1000) + " seconds.");
             resultSet.putAll(L);
@@ -51,7 +52,7 @@ public class Apriori {
         return resultSet;
     }
 
-    private static void findCandidateSetsSupport(Map<Set<String>, Integer> C, List<Map<String, Boolean>> data) {
+    private static void findSupportCount(Map<Set<String>, Integer> C, List<Map<String, Boolean>> data) {
 
         /* Go through dataset and find support values */
         for (Set<String> set : C.keySet())
@@ -64,19 +65,22 @@ public class Apriori {
             }
     }
 
-    private static Map<Set<String>, Integer> generateL1(List<Map<String, Boolean>> data, int minSupport) {
+    private static Map<Set<String>, Integer> generateL1(List<Map<String, Boolean>> data, int minSupport, int numOfSamples) {
 
         /* Generate candidate set C, with itemsets of size=1 for each possible attribute value */
         Map<Set<String>, Integer> C = generateC1(data);
 
         /* Fill in support values */
-        findCandidateSetsSupport(C, data);
+        findSupportCount(C, data);
 
-        return generateLFromC(C, minSupport);
+        return generateLFromC(C, minSupport, numOfSamples);
     }
 
-    private static Map<Set<String>, Integer> generateLFromC(Map<Set<String>, Integer> C, int minSupport) {
+    private static Map<Set<String>, Integer> generateLFromC(Map<Set<String>, Integer> C, int minSupport, int numOfSamples) {
         Map<Set<String>, Integer> L = new HashMap<>();
+
+        /* So that it works for a data set of any sample size */
+        minSupport = minSupport * numOfSamples/100;
 
         for (Set<String> key : C.keySet()) {
             int support = C.get(key);
@@ -126,7 +130,7 @@ public class Apriori {
                     newSet.addAll(set1);
                     newSet.addAll(set2);
 
-                    /* Zero support for each candidate initially */
+                    /* Zero support count for each candidate initially */
                     result.put(newSet, 0);
                 }
             }

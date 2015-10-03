@@ -1,21 +1,21 @@
 package com.company;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TemplateParser {
 
-    public static List<String> parseTemplate(String text, List<String> associationRules) {
+    public static Set<String> parseTemplate(String text, Set<String> associationRules) {
         text = text.replaceAll("Gene", "G").replaceAll("\\[", "(").replaceAll("]", ")").replaceAll("'", "");
         String regexTemplate1 = "(.*) (AND|OR) (.*)";
         Pattern patternTemplate1 = Pattern.compile(regexTemplate1);
         Matcher matcherTemplate1 = patternTemplate1.matcher(text);
 
         if (matcherTemplate1.find()) {
-            List<String> rulesLeft = parseTemplate(matcherTemplate1.group(1), associationRules);
-            List<String> rulesRight = parseTemplate(matcherTemplate1.group(3), associationRules);
+            Set<String> rulesLeft = parseTemplate(matcherTemplate1.group(1), associationRules);
+            Set<String> rulesRight = parseTemplate(matcherTemplate1.group(3), associationRules);
             String andOr = matcherTemplate1.group(2);
             if (andOr.equalsIgnoreCase("AND")) {
                 rulesLeft.retainAll(rulesRight);
@@ -35,7 +35,7 @@ public class TemplateParser {
                 String howMany = matcherTemplate2.group(2);
                 String featureNamesString = matcherTemplate2.group(3);
                 String[] features = featureNamesString.split(",");
-                List<String> qualifyingRules = new ArrayList<>();
+                Set<String> qualifyingRules = new HashSet<>();
 
                 for (String rule : associationRules) {
                     String ruleSubpart = Helper.getRuleSubpart(rule, ruleSubpartLabel);
@@ -54,7 +54,7 @@ public class TemplateParser {
                 String regexTemplate3 = "SizeOf\\((RULE|BODY|HEAD)\\) (>|>=|≥|<|<=|=|==) (\\d+)";
                 Pattern patternTemplate3 = Pattern.compile(regexTemplate3);
                 Matcher matcherTemplate3 = patternTemplate3.matcher(text);
-                List<String> qualifyingRules = new ArrayList<>();
+                Set<String> qualifyingRules = new HashSet<>();
 
                 if (matcherTemplate3.find()) {
                     String ruleSubpartLabel = matcherTemplate3.group(1);
@@ -68,13 +68,10 @@ public class TemplateParser {
                         if (Helper.checkMathematicalCondition(size, operator, sizeCondition))
                             qualifyingRules.add(rule);
                     }
-                    return qualifyingRules;
-
-                } else {
-                    System.out.println("== No match ==");
                 }
+
+                return qualifyingRules;
             }
         }
-        return null;
     }
 }

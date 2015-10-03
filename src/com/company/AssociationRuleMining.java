@@ -4,8 +4,8 @@ import java.util.*;
 
 public class AssociationRuleMining {
 
-    public static List<String> generateAssociationRules(Map<Set<String>, Integer> frequentItemset, int minConfidence) {
-        List<String> associationRules = new ArrayList<>();
+    public static Set<String> generateAssociationRules(Map<Set<String>, Integer> frequentItemset, int minConfidence) {
+        Set<String> associationRules = new HashSet<>();
 
         for (Set<String> L : frequentItemset.keySet()) {
             for (Set<String> S : generatePowerSet(L)) {

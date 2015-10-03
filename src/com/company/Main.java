@@ -17,7 +17,7 @@ public class Main {
         List<Map<String, Boolean>> data = readData(Configurations.FILE_PATH);
 
         Map<Set<String>, Integer> frequentItemset = Apriori.runApriori(data, Configurations.SUPPORT);
-        List<String> associationRules = AssociationRuleMining.generateAssociationRules(frequentItemset, Configurations.CONFIDENCE);
+        Set<String> associationRules = AssociationRuleMining.generateAssociationRules(frequentItemset, Configurations.CONFIDENCE);
 
         System.out.println("\n------------------Apriori and AR mining ----------------------");
         System.out.println("Frequent itemset >>>> Size = " + frequentItemset.size() + " >>>> " + frequentItemset);
@@ -26,7 +26,7 @@ public class Main {
         /* Parse templates and find association rules that match the conditions */
         System.out.println("\n------------------- Template query tests -----------------------");
         for (String template : Configurations.TEMPLATE_TEST_QUERIES) {
-            List<String> templateResult = TemplateParser.parseTemplate(template, associationRules);
+            Set<String> templateResult = TemplateParser.parseTemplate(template, associationRules);
             System.out.println(template + " >>>> Size = " + templateResult.size() + " >>>> " + templateResult);
         }
     }

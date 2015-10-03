@@ -37,9 +37,9 @@ public class Apriori {
             System.out.println(">> findSupportCount time is: " + ((double) (t3 - t2) / 1000) + " seconds.");
 
             /* Get the frequent itemset (for set-size k) */
-            L = generateLFromC(C, minSupport, numOfSamples);
+            L = filterCandidates(C, minSupport, numOfSamples);
             long t4 = System.currentTimeMillis();
-            System.out.println(">> generateLFromC time is: " + ((double) (t4 - t3) / 1000) + " seconds.");
+            System.out.println(">> filterCandidates time is: " + ((double) (t4 - t3) / 1000) + " seconds.");
             resultSet.putAll(L);
             System.out.println("Iteration for itemset size = " + (k + 1) + " complete. L.size() ==> [" + L.size() + "] ===> L = " + L);
 
@@ -73,10 +73,10 @@ public class Apriori {
         /* Fill in support values */
         findSupportCount(C, data);
 
-        return generateLFromC(C, minSupport, numOfSamples);
+        return filterCandidates(C, minSupport, numOfSamples);
     }
 
-    private static Map<Set<String>, Integer> generateLFromC(Map<Set<String>, Integer> C, int minSupport, int numOfSamples) {
+    private static Map<Set<String>, Integer> filterCandidates(Map<Set<String>, Integer> C, int minSupport, int numOfSamples) {
         Map<Set<String>, Integer> L = new HashMap<>();
 
         /* So that it works for a data set of any sample size */
@@ -138,11 +138,11 @@ public class Apriori {
         return result;
     }
 
-    private static Map<Set<String>, Integer> prune(Map<Set<String>, Integer> newL, Map<Set<String>, Integer> oldL) {
+    private static Map<Set<String>, Integer> prune(Map<Set<String>, Integer> C, Map<Set<String>, Integer> oldL) {
 
         Map<Set<String>, Integer> prunedL = new HashMap<>();
 
-        for (Set<String> setInNewL : newL.keySet()) {
+        for (Set<String> setInNewL : C.keySet()) {
             boolean somethingIsMissing = false;
             List<Set<String>> subsets = Helper.getSubsetsOfSizeMinusOne(setInNewL);
             for (Set<String> subset : subsets)
@@ -150,7 +150,7 @@ public class Apriori {
                     somethingIsMissing = true;
 
             if (!somethingIsMissing)
-                prunedL.put(setInNewL, newL.get(setInNewL));
+                prunedL.put(setInNewL, C.get(setInNewL));
         }
         return prunedL;
     }
